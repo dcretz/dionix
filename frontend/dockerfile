@@ -1,24 +1,22 @@
 # build stage
-FROM node:20-alpine AS build
+FROM node:20-bullseye AS build
 WORKDIR /app
 
 # copiem doar package.json și package-lock.json pentru cache eficient
 COPY package*.json ./
-COPY pnpm-lock.yaml ./
-COPY eslint.config.js ./
-COPY tsconfig.json ./
-COPY tsconfig.app.json ./
-COPY tsconfig.node.json ./
 
+# instalăm dependențele
 RUN npm install
 
 # copiem restul codului
 COPY . .
 
+# build production
 RUN npm run build
 
 # production stage
 FROM nginx:alpine
+# copiem build-ul în nginx
 COPY --from=build /app/dist /usr/share/nginx/html
 
 EXPOSE 80
