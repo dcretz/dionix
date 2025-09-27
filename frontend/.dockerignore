@@ -1,0 +1,12 @@
+node_modules
+dist
+.git
+Dockerfile
+docker-compose.yml
+.env
+.env.local
+.env.*.local
+.vscode
+.idea
+*.log
+*.tsbuildinfo
