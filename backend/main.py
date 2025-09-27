@@ -12,7 +12,7 @@ load_dotenv()  # Load environment variables from .env file
 # === CORS Config ===
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["www.dionixsoftworks.ro, dionixsoftworks.ro"],  # domeniul unde rulează React (vite)
+    allow_origins=["www.dionixsoftworks.ro", "dionixsoftworks.ro"],  # domeniul unde rulează React (vite)
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
