@@ -1,32 +1,30 @@
-# React + TypeScript + Vite
+# Trading frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+React + Vite + TypeScript UI for the trading backend in `../trading-backend`.
 
-Currently, two official plugins are available:
+- Interactive candlestick chart (`lightweight-charts`) — click "alege pe
+  grafic" next to Stop Loss / Take Profit, then click a price level on the
+  chart to set it; open positions are drawn as price lines automatically.
+- Quick trade panel with a live-computed lot size (from the account's risk
+  % and the chosen Stop Loss), a scope toggle to fire the trade on a single
+  account or every account marked "trade-all", and big Buy/Sell buttons.
+- Accounts page to add/edit MT5 accounts, their default risk %, and
+  whether they participate in "trade all".
+- Live bid/ask prices over the backend's websocket.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Setup
 
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+npm install
+cp .env.example .env   # set VITE_API_URL to the trading-backend URL
+npm run dev
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+On first load you'll be asked for the backend URL and its
+`TRADING_API_TOKEN` (stored in the browser's localStorage, not baked into
+the build) — see `../trading-backend/README.md` for how to run that.
+
+```bash
+npm run build   # production build
+npm run lint    # oxlint
+```
