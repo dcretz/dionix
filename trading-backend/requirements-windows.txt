@@ -1,0 +1,6 @@
+# Extra dependency needed only on the Windows host that runs the real MT5
+# connector (not installable on Linux/macOS — install alongside requirements.txt).
+#
+#   pip install -r requirements.txt -r requirements-windows.txt
+#
+MetaTrader5==5.0.4993

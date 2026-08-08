@@ -13,3 +13,30 @@ services:
     container_name: react_frontend
     ports:
       - "84:80"
+
+  trading-backend:
+    build: ./trading-backend
+    container_name: trading_backend
+    # NOTE: this container always runs the built-in MT5 simulator
+    # (TRADING_MT5_MOCK=1, baked into trading-backend/Dockerfile) because the
+    # real MetaTrader5 package only works on Windows with a local terminal.
+    # For real trading, run trading-backend directly on a Windows host
+    # instead of via this container — see trading-backend/README.md.
+    ports:
+      - "8005:8000"
+    env_file:
+      - ./trading-backend/.env
+    volumes:
+      - trading_backend_data:/app
+
+  trading-frontend:
+    build:
+      context: ./trading-frontend
+      args:
+        VITE_API_URL: ${TRADING_API_URL:-http://localhost:8005}
+    container_name: trading_frontend
+    ports:
+      - "85:80"
+
+volumes:
+  trading_backend_data:
