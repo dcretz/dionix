@@ -6,26 +6,51 @@ import { accountsApi, tradingApi } from "../lib/api";
 import PositionsTable from "../components/PositionsTable";
 import PriceChart from "../components/PriceChart";
 import QuickTradePanel from "../components/QuickTradePanel";
+import { useFavoritesStore } from "../store/useFavoritesStore";
 import type { Timeframe } from "../lib/types";
 
 const TIMEFRAMES: Timeframe[] = ["M1", "M5", "M15", "M30", "H1", "H4", "D1"];
+const LS_SCOPE = "trading.scope";
+const LS_SYMBOL = "trading.symbol";
+const LS_TIMEFRAME = "trading.timeframe";
+const LS_ACCOUNT = "trading.accountId";
 
 export default function Dashboard() {
   const { data: accounts } = useQuery({ queryKey: ["accounts"], queryFn: accountsApi.list, refetchInterval: 5000 });
+  const { favorites, toggleFavorite, isFavorite } = useFavoritesStore();
 
-  const [selectedAccountId, setSelectedAccountId] = useState<number | null>(null);
-  const [scope, setScope] = useState<"single" | "all">("single");
-  const [symbol, setSymbol] = useState("EURUSD");
-  const [timeframe, setTimeframe] = useState<Timeframe>("M15");
+  const [selectedAccountId, setSelectedAccountId] = useState<number | null>(() => {
+    const saved = localStorage.getItem(LS_ACCOUNT);
+    return saved ? Number(saved) : null;
+  });
+  const [scope, setScope] = useState<"single" | "all">(
+    () => (localStorage.getItem(LS_SCOPE) as "single" | "all" | null) ?? "single",
+  );
+  const [symbol, setSymbol] = useState(() => localStorage.getItem(LS_SYMBOL) ?? "EURUSD");
+  const [timeframe, setTimeframe] = useState<Timeframe>(
+    () => (localStorage.getItem(LS_TIMEFRAME) as Timeframe | null) ?? "M15",
+  );
   const [sl, setSl] = useState<number | null>(null);
   const [tp, setTp] = useState<number | null>(null);
   const [pickMode, setPickMode] = useState<"sl" | "tp" | null>(null);
 
   useEffect(() => {
-    if (!selectedAccountId && accounts && accounts.length > 0) {
-      setSelectedAccountId(accounts[0].id);
-    }
+    if (!accounts || accounts.length === 0) return;
+    if (selectedAccountId && accounts.some((a) => a.id === selectedAccountId)) return;
+    setSelectedAccountId(accounts[0].id);
   }, [accounts, selectedAccountId]);
+
+  useEffect(() => {
+    if (selectedAccountId != null) localStorage.setItem(LS_ACCOUNT, String(selectedAccountId));
+  }, [selectedAccountId]);
+
+  useEffect(() => {
+    localStorage.setItem(LS_SYMBOL, symbol);
+  }, [symbol]);
+
+  useEffect(() => {
+    localStorage.setItem(LS_TIMEFRAME, timeframe);
+  }, [timeframe]);
 
   const { data: symbols } = useQuery({
     queryKey: ["symbols", selectedAccountId],
@@ -78,6 +103,37 @@ export default function Dashboard() {
             </option>
           ))}
         </select>
+        <button
+          onClick={() => toggleFavorite(symbol)}
+          title={isFavorite(symbol) ? "Scoate din favorite" : "Adaugă la favorite"}
+          className={`text-lg leading-none ${isFavorite(symbol) ? "text-yellow-400" : "text-muted hover:text-yellow-400"}`}
+        >
+          {isFavorite(symbol) ? "★" : "☆"}
+        </button>
+        {favorites.length > 0 && (
+          <div className="flex gap-1 flex-wrap">
+            {favorites.map((fav) => {
+              const available = !symbols || symbols.includes(fav);
+              return (
+                <button
+                  key={fav}
+                  disabled={!available}
+                  onClick={() => setSymbol(fav)}
+                  title={available ? undefined : "Indisponibil pe contul selectat"}
+                  className={`px-2 py-1 rounded text-xs border ${
+                    !available
+                      ? "border-border text-muted/40 cursor-not-allowed line-through"
+                      : symbol === fav
+                        ? "bg-accent border-accent text-white"
+                        : "border-border text-muted hover:text-white hover:border-white/30"
+                  }`}
+                >
+                  {fav}
+                </button>
+              );
+            })}
+          </div>
+        )}
         <div className="flex gap-1">
           {TIMEFRAMES.map((tf) => (
             <button
@@ -115,6 +171,7 @@ export default function Dashboard() {
             pendingTp={tp}
             pickMode={pickMode}
             onPickPrice={handlePickPrice}
+            currency={accountInfo?.currency ?? ""}
           />
         </div>
         <div className="w-80 border-l border-border shrink-0">
@@ -122,7 +179,10 @@ export default function Dashboard() {
             accounts={accounts ?? []}
             selectedAccountId={selectedAccountId}
             scope={scope}
-            onScopeChange={setScope}
+            onScopeChange={(next) => {
+              localStorage.setItem(LS_SCOPE, next);
+              setScope(next);
+            }}
             onAccountChange={setSelectedAccountId}
             symbol={symbol}
             sl={sl}

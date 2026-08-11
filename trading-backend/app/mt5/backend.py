@@ -97,6 +97,7 @@ class RealMT5Backend:
         return info._asdict() if info else None
 
     def symbol_info_tick(self, symbol):
+        self.mt5.symbol_select(symbol, True)
         tick = self.mt5.symbol_info_tick(symbol)
         if tick is None:
             return None
@@ -129,6 +130,7 @@ class RealMT5Backend:
 
     def place_market_order(self, *, symbol, side, volume, sl, tp, deviation, magic, comment):
         mt5 = self.mt5
+        mt5.symbol_select(symbol, True)
         tick = mt5.symbol_info_tick(symbol)
         if tick is None:
             return {"ok": False, "retcode": -1, "comment": "no tick for symbol"}
@@ -171,6 +173,7 @@ class RealMT5Backend:
         pos = positions[0]
         close_volume = volume or pos.volume
         side = "sell" if pos.type == mt5.ORDER_TYPE_BUY else "buy"
+        mt5.symbol_select(pos.symbol, True)
         tick = mt5.symbol_info_tick(pos.symbol)
         if tick is None:
             return {"ok": False, "retcode": -1, "comment": "no tick for symbol"}
